@@ -1,0 +1,1028 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -624,
+        32
+      ],
+      "id": "06464585-fadb-455b-8adb-60fcd8ef706a",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pick Sender — uses Node 5 data once per run\nconst senders = $('Get Senders').all().map(i => i.json);\n\nconst available = senders.filter(s => {\n  const active = String(s.active || 'TRUE').toUpperCase() === 'TRUE';\n  const sent = parseInt(s.Sent_Today, 10) || 0;\n  const limit = parseInt(s.Daily_Limit, 10) || 40;\n  return active && sent < limit;\n});\n\nif (available.length === 0) {\n  throw new Error('All senders at daily limit.');\n}\n\navailable.sort((a, b) =>\n  (parseInt(a.Sent_Today, 10) || 0) - (parseInt(b.Sent_Today, 10) || 0)\n);\n\nreturn [{ json: available[0] }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        48
+      ],
+      "id": "bd03d4c5-40a0-4011-9ca6-de9efc805bb7",
+      "name": "Pick Sender"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        48
+      ],
+      "id": "f4c5ba0c-ede7-45a5-93e7-14ff6b0f9300",
+      "name": "Manual test"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo",
+          "mode": "list",
+          "cachedResultName": "Leads Sheets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Outreachers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1232,
+        48
+      ],
+      "id": "45fe4770-a165-4f52-9c7e-8eff0149aaac",
+      "name": "Get Outreachers",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ztE4Hm2kP7WgBZnk",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4aeb56c6-4234-4985-9ec4-4542a425a2cc",
+              "leftValue": "={{ $json[\"Send Status\"] }}",
+              "rightValue": "SENT",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "b62d8bf3-7a56-43b2-9ccf-fb5d977e1846",
+              "leftValue": "={{ $json[\"Send Status\"] }}",
+              "rightValue": "REPLIED",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "e1144ad3-71a9-4747-b00b-a5c12ad79821",
+              "leftValue": "={{ $json[\"Send Status\"] }}",
+              "rightValue": "BOUNCED",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "f70c7408-f9f4-4a9f-9028-d5b724df03f8",
+              "leftValue": "={{ $json[\"Send Status\"] }}",
+              "rightValue": "UNSUB",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1056,
+        48
+      ],
+      "id": "d844a2ec-56a2-466d-86b4-ecdf02648468",
+      "name": "Filter Not Send"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo",
+          "mode": "list",
+          "cachedResultName": "Leads Sheets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1800137854,
+          "mode": "list",
+          "cachedResultName": "Templates",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo/edit#gid=1800137854"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1424,
+        48
+      ],
+      "id": "c0f56746-39b7-4672-a55d-ca5d3ed5bd74",
+      "name": "Get Templates",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ztE4Hm2kP7WgBZnk",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo",
+          "mode": "list",
+          "cachedResultName": "Leads Sheets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1510827830,
+          "mode": "list",
+          "cachedResultName": "Senders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo/edit#gid=1510827830"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -336,
+        48
+      ],
+      "id": "23a40c13-d22e-47ea-8eed-b7084d5154cb",
+      "name": "Get Senders",
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ztE4Hm2kP7WgBZnk",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const MAX=5\nconst rows=items.map(i => i.json)\nconst batch=rows.slice(0, MAX);\nif(batch.length===0){\n  return [];\n}\nreturn batch.map(json => ({json}))"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        32
+      ],
+      "id": "b00c8f8f-7283-4fa1-adfa-c51274689ee1",
+      "name": "Limit Batch 5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pick Template — random template per email\nconst templates = $('Get Templates').all().map(i => i.json);\n\nif (!templates.length) {\n  throw new Error('No templates in sheet');\n}\n\nconst t = templates[Math.floor(Math.random() * templates.length)];\nconst bodyHtml = (t.Body || '').replace(/\\n/g, '<br>');\n\nreturn [{\n  json: {\n    subject: t.Subject || '',\n    body: bodyHtml,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        48
+      ],
+      "id": "8740ce0d-5556-48dc-bf76-85f4a9fad768",
+      "name": "Pick Template"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lead = $('Loop Over Items').item.json;\nconst sender = $('Pick Sender').item.json;\nconst template = items[0].json;\n\nreturn [{\n  json: {\n    ...lead,\n    Email: lead.Email,\n    Name: lead.Name,\n    subject: template.subject,\n    body: template.body,\n    sender_email: sender.Email,\n    App_Password: sender.App_Password,\n    Sent_Today: sender.Sent_Today,\n    Daily_Limit: sender.Daily_Limit,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        48
+      ],
+      "id": "1542eab1-a658-4159-921d-2faeead18c33",
+      "name": "Combine all"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nlet subject = item.subject || '';\nlet body = item.body || '';\n\nbody = body.replace(/{Name}/g, item.Name || 'there');\nbody = body.replace(/{company}/g, item.Company || '');\n\nsubject = subject.replace(/{Name}/g, item.Name || 'there');\nsubject = subject.replace(/{company}/g, item.Company || '');\n\nreturn [{\n  json: {\n    ...item,\n    subject: subject,\n    body: body,\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        48
+      ],
+      "id": "123cb32c-44b3-40aa-a1a3-934582e0c137",
+      "name": "Personalize Email"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo",
+          "mode": "list",
+          "cachedResultName": "Leads Sheets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Outreachers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Send Status": "SENT",
+            "Time": "={{ new Date().toISOString() }}",
+            "Email": "={{ $('Personalize Email').item.json.Email }}",
+            "row_number": 0
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Send Status",
+              "displayName": "Send Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1696,
+        32
+      ],
+      "id": "190b6dec-1b89-4ce5-b812-77fa71433ed9",
+      "name": "Update Leads Status",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ztE4Hm2kP7WgBZnk",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sender = $('Pick Sender').item.json;\nreturn [{\n  json: {\n    Email: sender.Email,\n    Sent_Today: (parseInt(sender.Sent_Today) || 0) + 1,\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2032,
+        32
+      ],
+      "id": "05d75333-2f00-463f-bdc1-f085496bc562",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.sender_email }}",
+                    "rightValue": "mariamsprobraiders@gmail.com",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "4ff0f057-add4-4209-bc26-5677a4332dfe"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "mariams"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "98374dab-7639-4bd4-9a5c-d1edc1060565",
+                    "leftValue": "={{ $json.sender_email }}",
+                    "rightValue": "fatimavprobraider@gmail.com",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "fatimav"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4106ee86-a9d7-433d-837b-f32ac482dbd0",
+                    "leftValue": "={{ $json.sender_email }}",
+                    "rightValue": "stephaniedprobraiders@gmail.com",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "stephanied"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "32f58aba-4bf6-4d52-aca1-c561fb04ab63",
+                    "leftValue": "={{ $json.sender_email }}",
+                    "rightValue": "bintoubprobraider@gmail.com",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "bintoub"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7e5dc638-8d16-45e1-b3be-e62f654a6b6c",
+                    "leftValue": "={{ $json.sender_email }}",
+                    "rightValue": "roseoprobraiders@gmail.com",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "roseo"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        912,
+        0
+      ],
+      "id": "e79d8767-5e0e-4b7b-a607-b9c10bb4f3de",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "fromEmail": "=={{ $json.sender_email }}",
+        "toEmail": "=={{ $json.Email }}",
+        "subject": "=={{ $json.subject }}",
+        "html": "=={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        -352
+      ],
+      "id": "bb38f059-c023-40e8-bced-c8d9f33ed41d",
+      "name": "Sender Email 1",
+      "webhookId": "e93aca19-6525-4f41-8893-334f155e2e9b",
+      "credentials": {
+        "smtp": {
+          "id": "flS6xigUXxtBsfIb",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "=={{ $json.sender_email }}",
+        "toEmail": "=={{ $json.Email }}",
+        "subject": "=={{ $json.subject }}",
+        "html": "=={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        -176
+      ],
+      "id": "ef33ff3b-b568-4998-b08a-6c9d42a72d5a",
+      "name": "Sender Email 2",
+      "webhookId": "f0f11e4c-7208-4e85-840c-84cf13a40785",
+      "credentials": {
+        "smtp": {
+          "id": "m72j2hBnt2SJtwLz",
+          "name": "SMTP account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "=={{ $json.sender_email }}",
+        "toEmail": "=={{ $json.Email }}",
+        "subject": "=={{ $json.subject }}",
+        "html": "=={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1136,
+        16
+      ],
+      "id": "29cdddc7-9be1-48a0-b603-f8f39cc14ca3",
+      "name": "Sender Email 3",
+      "webhookId": "232dff24-40a8-45df-a8a5-9b03c067c62d",
+      "credentials": {
+        "smtp": {
+          "id": "o9ep9Dc1NJ1FhEm5",
+          "name": "SMTP account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "=={{ $json.sender_email }}",
+        "toEmail": "=={{ $json.Email }}",
+        "subject": "=={{ $json.subject }}",
+        "html": "=={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1136,
+        208
+      ],
+      "id": "b44fc989-75ca-4701-b5ca-40d62a582cc7",
+      "name": "Sender Email 4",
+      "webhookId": "69249350-58e8-4275-88a4-93d1c086ae38",
+      "credentials": {
+        "smtp": {
+          "id": "3wrxBzOh4JZL71gS",
+          "name": "SMTP account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "=={{ $json.sender_email }}",
+        "toEmail": "=={{ $json.Email }}",
+        "subject": "=={{ $json.subject }}",
+        "html": "=={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1136,
+        384
+      ],
+      "id": "20567804-a169-4d87-8dfb-11ba18486cd9",
+      "name": "Sender Email 5",
+      "webhookId": "5104631d-b4b1-40d3-8e21-10a1fb856813",
+      "credentials": {
+        "smtp": {
+          "id": "JuSP4M4ZRFf0mE8q",
+          "name": "SMTP account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo",
+          "mode": "list",
+          "cachedResultName": "Leads Sheets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1510827830,
+          "mode": "list",
+          "cachedResultName": "Senders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P2Id83H9vYRd6SWjwcNo2LynuRCvFInnuEHAa1DH6Fo/edit#gid=1510827830"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "Email": "={{ $('Pick Sender').item.json.Email }}\n",
+            "Sent_Today": "={{ parseInt($('Pick Sender').item.json.Sent_Today) + 1 }}\n"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "App_Password",
+              "displayName": "App_Password",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Daily_Limit",
+              "displayName": "Daily_Limit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Sent_Today",
+              "displayName": "Sent_Today",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Active",
+              "displayName": "Active",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2320,
+        32
+      ],
+      "id": "e9bbc56a-4144-418f-bfed-51ae1d690d5e",
+      "name": "Update Send_Today",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ztE4Hm2kP7WgBZnk",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        704,
+        48
+      ],
+      "id": "380cd674-248a-483b-86c9-d4bdd72c3b35",
+      "name": "Wait",
+      "webhookId": "0fbd8168-79db-4c44-beb6-abed16f3dc08"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Get Senders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Sender": {
+      "main": [
+        [
+          {
+            "node": "Pick Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual test": {
+      "main": [
+        [
+          {
+            "node": "Get Templates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Outreachers": {
+      "main": [
+        [
+          {
+            "node": "Filter Not Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Not Send": {
+      "main": [
+        [
+          {
+            "node": "Limit Batch 5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Senders": {
+      "main": [
+        [
+          {
+            "node": "Pick Sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Templates": {
+      "main": [
+        [
+          {
+            "node": "Get Outreachers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit Batch 5": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Template": {
+      "main": [
+        [
+          {
+            "node": "Combine all",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine all": {
+      "main": [
+        [
+          {
+            "node": "Personalize Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Personalize Email": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Leads Status": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Update Send_Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Sender Email 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sender Email 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sender Email 3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sender Email 4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sender Email 5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sender Email 1": {
+      "main": [
+        [
+          {
+            "node": "Update Leads Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sender Email 2": {
+      "main": [
+        [
+          {
+            "node": "Update Leads Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sender Email 4": {
+      "main": [
+        [
+          {
+            "node": "Update Leads Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sender Email 3": {
+      "main": [
+        [
+          {
+            "node": "Update Leads Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sender Email 5": {
+      "main": [
+        [
+          {
+            "node": "Update Leads Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Send_Today": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a8a83bef-5df7-45b1-8398-82f1f011d28d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "933ee548882e2bf7f6061bb633a848971fa7d2effc1105936df88a0b977476f1"
+  },
+  "id": "9V2riOH4Yv4ziYMM",
+  "tags": []
+}
